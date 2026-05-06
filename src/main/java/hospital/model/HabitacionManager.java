@@ -12,36 +12,37 @@ import java.util.List;
  * @author Victus
  */
 public class HabitacionManager {
-    /**
-     * Obtiene las 16 habitaciones de un piso específico.
-     */
+    // Obtiene las 16 habitaciones de un piso especifico
     public List<Habitacion> obtenerCamasPorPiso(int idPiso) {
-        List<Habitacion> lista = new ArrayList<>();
-        String sql = "SELECT * FROM tbl_habitaciones WHERE id_piso = ?";
+    List<Habitacion> lista = new ArrayList<>();
+    String sql = "SELECT h.*, a.area FROM tbl_habitaciones h " +
+                 "INNER JOIN tbl_area a ON h.id_area = a.id_area " +
+                 "WHERE h.id_piso = ?";
 
-        try (Connection con = Conexion.getConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+    try (Connection con = Conexion.getConexion();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+        
+        ps.setInt(1, idPiso);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            Habitacion h = new Habitacion();
+            h.setIdHabitacion(rs.getInt("id_habitacion"));
+            h.setNumeroCama(rs.getInt("numero_cama"));
+            h.setIdEstado(rs.getInt("id_estado"));
+            h.setIdExpediente(rs.getString("id_expediente_paciente"));
+            h.setNombreArea(rs.getString("area")); 
             
-            ps.setInt(1, idPiso);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Habitacion h = new Habitacion();
-                h.setIdHabitacion(rs.getInt("id_habitacion"));
-                h.setNumeroCama(rs.getInt("numero_cama"));
-                h.setIdExpediente(rs.getString("id_expediente_paciente"));
-                h.setIdEstado(rs.getInt("id_estado"));
-                lista.add(h);
+            lista.add(h);
             }
         } catch (SQLException e) {
-            System.err.println("Error al consultar camas: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
         return lista;
     }
 
-    /**
-     * Actualiza el estado de una cama y asigna un paciente.
-     */
+    // Actualiza el estado de una cama y asigna un paciente
+     
     public boolean ocuparCama(int idHabitacion, String idExpediente) {
         // Estado 2 = Ocupada (Rojo) 
         String sql = "UPDATE tbl_habitaciones SET id_expediente_paciente = ?, id_estado = 2 WHERE id_habitacion = ?";
@@ -57,5 +58,22 @@ public class HabitacionManager {
             System.err.println("Error al ocupar cama: " + e.getMessage());
             return false;
         }
+    }
+    
+        public List<String> obtenerListaPisos() {
+        List<String> pisos = new ArrayList<>();
+        String sql = "SELECT piso FROM tbl_piso ORDER BY id_piso ASC";
+
+        try (Connection con = Conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                pisos.add(rs.getString("piso"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener pisos: " + e.getMessage());
+        }
+        return pisos;
     }
 }

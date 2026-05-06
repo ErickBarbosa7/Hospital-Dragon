@@ -23,6 +23,8 @@ public class HospitalController {
         this.vista = vista;
         this.modelo = modelo;
         
+        // Cargar los pisos de la BD al ComboBox
+        configurarComboBoxPisos();
         //cargar los datos iniciales, los de planta baja = piso 1
         cargarPiso(1);
         
@@ -35,61 +37,79 @@ public class HospitalController {
     }
     
     private void cargarPiso(int idPiso) {
+        // Limpiar los 16 botones para que no se queden con colores o datos del piso anterior
+        for (javax.swing.JButton btn : vista.listaBotones) {
+            btn.setBackground(Color.LIGHT_GRAY); 
+            btn.setText(""); 
+            btn.setEnabled(false); 
 
-    // Determino el nombre del piso segun el id que llega
-    String nombrePiso = (idPiso == 1) ? "Planta Baja" : "Piso 1";
-
-    // Actualizo el titulo de arriba con una pequena instruccion para el usuario
-    vista.getLabelTituloPiso().setText("<html>Mapa del " + nombrePiso + "</html>");
-
-    // Traigo todas las camas (habitaciones) de ese piso desde el modelo
-    List<Habitacion> habitaciones = modelo.obtenerCamasPorPiso(idPiso);
-
-    // Recorro cada habitacion para asignarla a su boton correspondiente
-    for (int i = 0; i < habitaciones.size(); i++) {
-
-        Habitacion h = habitaciones.get(i);
-        javax.swing.JButton btn = vista.listaBotones[i];
-
-        // Le pongo el numero de cama al boton (centrado y con formato)
-        btn.setText("<html><center>Cama<br><b>" + h.getNumeroCama() + "</b></center></html>");
-
-        // Cambio el color dependiendo del estado de la cama
-        switch (h.getIdEstado()) {
-            case 1 -> btn.setBackground(new Color(46, 204, 113)); // Libre (verde)
-            case 2 -> btn.setBackground(new Color(231, 76, 60));  // Ocupada (rojo)
-            case 3 -> btn.setBackground(new Color(241, 196, 15)); // Mantenimiento (amarillo)
-            default -> btn.setBackground(Color.LIGHT_GRAY);       // Por si algo raro pasa
+            // Quitar cualquier click anterior para que no se amontonen las acciones
+            for (ActionListener al : btn.getActionListeners()) {
+                btn.removeActionListener(al);
+            }
         }
 
-        // Limpio listeners anteriores para evitar que se acumulen
-        for (ActionListener al : btn.getActionListeners()) {
-            btn.removeActionListener(al);
-        }
+        // Inserta el nombre del piso en el label de arriba 
+        String nombrePiso = vista.getComboPisos().getSelectedItem().toString();
+        vista.getLabelTituloPiso().setText("<html>Mapa del <b>" + nombrePiso + "</b></html>");
 
-        // Le asigno la accion al boton segun el estado de la cama
-        btn.addActionListener(e -> {
+        // Traer la lista de camas de la base de datos
+        List<Habitacion> habitaciones = modelo.obtenerCamasPorPiso(idPiso);
 
-            // Si esta libre, permito asignar paciente
-            if (h.getIdEstado() == 1) {
+        // Activa los botones que sí tienen una cama registrada en la BD
+        for (int i = 0; i < habitaciones.size(); i++) {
+            Habitacion h = habitaciones.get(i);
+            javax.swing.JButton btn = vista.listaBotones[i];
 
-                String idExp = javax.swing.JOptionPane.showInputDialog(vista, "Ingrese ID Expediente Paciente:");
+            btn.setEnabled(true); // Activo el boton porque aquí sí hay una cama
+         
+            btn.setText("<html><center><font size='2'>" + h.getNombreArea().toUpperCase() + "</font><br>"
+                    + "<b>C-" + h.getNumeroCama() + "</b></center></html>");
 
-                // Valido que si haya escrito algo
-                if (idExp != null && !idExp.trim().isEmpty()) {
+            // 1=Verde, 2=Rojo, 3=Amarillo
+            switch (h.getIdEstado()) {
+                case 1 -> btn.setBackground(new Color(46, 204, 113)); 
+                case 2 -> btn.setBackground(new Color(231, 76, 60));  
+                case 3 -> btn.setBackground(new Color(241, 196, 15)); 
+                default -> btn.setBackground(Color.LIGHT_GRAY);
+            }
 
-                    // Intento ocupar la cama en el modelo
-                    if (modelo.ocuparCama(h.getIdHabitacion(), idExp)) {
-                        // Recargo la vista para reflejar el cambio
-                        cargarPiso(idPiso); 
+            btn.addActionListener(e -> {
+                if (h.getIdEstado() == 1) {
+                    // Si esta libre abre la ventana de DialogoPaciente
+                    String areaActual = h.getNombreArea();
+                    DialogoPaciente diag = new DialogoPaciente(vista, true, h.getNumeroCama(), areaActual);
+                    diag.setVisible(true);
+
+                    // Si el usuario le dio a Aceptar y puso un expediente
+                    if (diag.isAceptado()) {
+                        String idExp = diag.getExpediente();
+                        // Guarda en la BD y recargo el mapa
+                        if (modelo.ocuparCama(h.getIdHabitacion(), idExp)) {
+                            cargarPiso(idPiso); 
+                        }
                     }
-                }
-
-            // Si ya esta ocupada, solo muestro quien la tiene
-            } else if (h.getIdEstado() == 2) {
-                javax.swing.JOptionPane.showMessageDialog(vista, "Cama ocupada por: " + h.getIdExpediente());
+                } else if (h.getIdEstado() == 2) {
+                    // Si ya esta ocupada solo avisa que paciente esta ahí
+                    javax.swing.JOptionPane.showMessageDialog(vista, 
+                        "Esta cama la tiene el paciente: " + h.getIdExpediente(), 
+                        "Cama Ocupada", 1);
                 }
             });
         }
     }
+    
+    private void configurarComboBoxPisos() {
+    // Limpiamos los items 
+    vista.getComboPisos().removeAllItems();
+    
+    // Traemos la lista de la base
+    List<String> listaPisos = modelo.obtenerListaPisos();
+    
+    // Los agregamos al componente
+    for (String nombrePiso : listaPisos) {
+        vista.getComboPisos().addItem(nombrePiso);
+    }
+}
+    
 }

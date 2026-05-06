@@ -15,7 +15,7 @@ public class Habitacion {
     private int idPiso;
     private int idArea;
     private int idEstado; // 1= Libre 2= Ocupada 3= Mantenimiento
-    
+    private String nombreArea;
     public Habitacion() {
         
     }
@@ -56,4 +56,11 @@ public class Habitacion {
     public void setIdEstado(int idEstado) { 
         this.idEstado = idEstado; 
     }
+    
+    public String getNombreArea() {
+    return nombreArea;
+}
+    public void setNombreArea(String nombreArea) {
+    this.nombreArea = nombreArea;
+}
 }

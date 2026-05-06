@@ -13,7 +13,6 @@ import java.sql.SQLException;
  * @author Victus
  */
 public class Conexion {
-    // Datos de conexión coincidentes con tu docker-compose.yml
     private static final String URL = "jdbc:mysql://localhost:3306/hospital_dragon";
     private static final String USER = "user_dragon";
     private static final String PASS = "password123";
@@ -23,9 +22,9 @@ public class Conexion {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection(URL, USER, PASS);
-            System.out.println("✅ Conexión establecida con Hospital Dragón en Docker.");
+            System.out.println("Conexion establecida en Docker.");
         } catch (ClassNotFoundException e) {
-            System.err.println("Error: No se encontró el driver de MySQL");
+            System.err.println("Error: No se encontro el driver de MySQL");
         } catch (SQLException e) {
             System.err.println("Error de SQL: " + e.getMessage());
         }

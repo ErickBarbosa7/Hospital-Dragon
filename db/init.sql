@@ -51,8 +51,9 @@ INSERT INTO tbl_area (area) VALUES
 
 -- PISOS
 INSERT INTO tbl_piso (piso) VALUES 
-('Planta baja'), 
-('Primer piso');
+('Planta baja'),
+('Primer piso'), 
+('Segundo piso');
 
 -- Camas
 
@@ -69,3 +70,10 @@ INSERT INTO tbl_habitaciones (numero_cama, id_piso, id_area, id_estado) VALUES
 (5,2,4,1),(6,2,4,1),(7,2,4,1),(8,2,4,1),
 (9,2,4,1),(10,2,4,1),(11,2,4,1),(12,2,4,1),
 (13,2,4,1),(14,2,4,1),(15,2,4,1),(16,2,4,1);
+
+-- Piso 3 (Segundo piso = id 3)
+INSERT INTO tbl_habitaciones (numero_cama, id_piso, id_area, id_estado) VALUES
+(1,3,1,1),(2,3,1,1),(3,3,1,1),(4,3,1,1),
+(5,3,2,1),(6,3,2,1),(7,3,2,1),(8,3,2,1),
+(9,3,3,1),(10,3,3,1),(11,3,3,1),(12,3,3,1),
+(13,3,4,1),(14,3,4,1),(15,3,4,1),(16,3,4,1);

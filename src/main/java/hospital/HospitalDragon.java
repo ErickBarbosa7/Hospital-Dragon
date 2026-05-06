@@ -20,8 +20,6 @@ public class HospitalDragon {
         
         VentanaPrincipal vista = new VentanaPrincipal();
         HabitacionManager modelo = new HabitacionManager();
-        
-        // Aquí es donde probablemente truena
         HospitalController controlador = new HospitalController(vista, modelo);
     
         vista.setVisible(true);
